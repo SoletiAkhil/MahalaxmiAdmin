@@ -233,28 +233,42 @@
         <h3>Site Settings & Contact</h3>
 
         <div class="settings-grid" id="settingsGrid">
-          <div class="col">
-            <label>WhatsApp number (with country code, e.g. 919032589283)</label>
-            <input id="setting_whatsapp" type="text" placeholder="WhatsApp number" />
 
-            <label>Contact phone number</label>
-            <input id="setting_phone" type="text" placeholder="Phone number" />
+            <!-- LEFT COLUMN -->
+            <div class="col">
+              <label>WhatsApp number (with country code)</label>
+              <input id="setting_whatsapp" type="text" placeholder="919032589283" />
 
-            <label>Support email</label>
-            <input id="setting_email" type="text" placeholder="support@example.com" />
+              <label>Primary Phone Number</label>
+              <input id="setting_phone_primary" type="text" placeholder="6281245345" />
+
+              <label>Secondary Phone Number</label>
+              <input id="setting_phone_secondary" type="text" placeholder="8790387333" />
+
+              <label>Support Email</label>
+              <input id="setting_email" type="text" placeholder="support@example.com" />
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col">
+              <label>Full Address</label>
+              <textarea id="setting_address" placeholder="SAT Nagar, House No. 45, Thotapalem Panchayathi..."></textarea>
+
+              <label>Google Map URL</label>
+              <input id="setting_map" type="text" placeholder="https://share.google/..." />
+
+              <label>Facebook URL</label>
+              <input id="setting_facebook" type="text" />
+
+              <label>Instagram URL</label>
+              <input id="setting_instagram" type="text" />
+
+              <label>Twitter / X URL</label>
+              <input id="setting_twitter" type="text" />
+            </div>
+
           </div>
 
-          <div class="col">
-            <label>Facebook URL</label>
-            <input id="setting_facebook" type="text" placeholder="https://facebook.com/yourpage" />
-
-            <label>Twitter / X URL</label>
-            <input id="setting_twitter" type="text" placeholder="https://twitter.com/yourhandle" />
-
-            <label>Instagram URL</label>
-            <input id="setting_instagram" type="text" placeholder="https://instagram.com/yourhandle" />
-          </div>
-        </div>
 
         <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
           <button class="btn" id="saveSettingsBtn">Save Settings</button>
@@ -562,75 +576,121 @@
     // load settings row from site_settings where id = SETTINGS_ROW_ID
     async function loadSettings() {
       try {
-        const { data, error } = await client.from('site_settings').select('*').eq('id', SETTINGS_ROW_ID).single();
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-          console.error('loadSettings error', error);
-        }
+        const { data, error } = await client
+          .from('site_settings')
+          .select('*')
+          .eq('id', SETTINGS_ROW_ID)
+          .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
         const row = data || {};
-        // populate inputs
+
         $('#setting_whatsapp').value = row.whatsapp_number || '';
-        $('#setting_phone').value = row.phone || '';
+        $('#setting_phone_primary').value = row.phone_primary || '';
+        $('#setting_phone_secondary').value = row.phone_secondary || '';
         $('#setting_email').value = row.email || '';
+
+        $('#setting_address').value = row.address || '';
+        $('#setting_map').value = row.google_map_url || '';
+
         $('#setting_facebook').value = row.facebook_url || '';
-        $('#setting_twitter').value = row.twitter_url || '';
         $('#setting_instagram').value = row.instagram_url || '';
+        $('#setting_twitter').value = row.twitter_url || '';
+
         $('#settingsStatus').innerText = data ? 'Loaded' : 'No settings';
         renderSettingsPreview();
+
       } catch (err) {
         console.error('loadSettings', err);
         $('#settingsStatus').innerText = 'Load failed';
       }
     }
 
-    // save (upsert) the settings row
+
     $('#saveSettingsBtn').addEventListener('click', async () => {
+
       const payload = {
         id: SETTINGS_ROW_ID,
+
         whatsapp_number: $('#setting_whatsapp').value.trim(),
-        phone: $('#setting_phone').value.trim(),
+        phone_primary: $('#setting_phone_primary').value.trim(),
+        phone_secondary: $('#setting_phone_secondary').value.trim(),
         email: $('#setting_email').value.trim(),
+
+        address: $('#setting_address').value.trim(),
+        google_map_url: $('#setting_map').value.trim(),
+
         facebook_url: $('#setting_facebook').value.trim(),
-        twitter_url: $('#setting_twitter').value.trim(),
         instagram_url: $('#setting_instagram').value.trim(),
+        twitter_url: $('#setting_twitter').value.trim(),
+
         updated_at: new Date().toISOString()
       };
+
       try {
-        $('#saveSettingsBtn').innerText = 'Saving...'; $('#saveSettingsBtn').disabled = true;
-        const { data, error } = await client.from('site_settings').upsert(payload, { returning: 'representation' });
+        $('#saveSettingsBtn').innerText = 'Saving...';
+        $('#saveSettingsBtn').disabled = true;
+
+        const { error } = await client
+          .from('site_settings')
+          .upsert(payload);
+
         if (error) throw error;
+
         $('#settingsStatus').innerText = 'Saved';
         renderSettingsPreview();
-        alert('Settings saved');
+        alert('Settings saved successfully');
+
       } catch (err) {
-        console.error('saveSettings', err);
-        alert('Save failed: ' + (err.message || err));
+        console.error(err);
+        alert('Save failed: ' + err.message);
         $('#settingsStatus').innerText = 'Save failed';
       } finally {
-        $('#saveSettingsBtn').innerText = 'Save Settings'; $('#saveSettingsBtn').disabled = false;
+        $('#saveSettingsBtn').innerText = 'Save Settings';
+        $('#saveSettingsBtn').disabled = false;
       }
     });
 
+
     $('#loadSettingsBtn').addEventListener('click', loadSettings);
 
-    // render a small preview of links
     function renderSettingsPreview() {
       const wrap = $('#previewLinks');
-      const wa = $('#setting_whatsapp').value.trim();
-      const phone = $('#setting_phone').value.trim();
-      const email = $('#setting_email').value.trim();
-      const fb = $('#setting_facebook').value.trim();
-      const tw = $('#setting_twitter').value.trim();
-      const ig = $('#setting_instagram').value.trim();
+      wrap.innerHTML = '';
 
       const items = [];
-      if (wa) items.push(`<a target="_blank" href="https://wa.me/${encodeURIComponent(wa)}">WhatsApp</a>`);
-      if (phone) items.push(`<a href="tel:${encodeURIComponent(phone)}">Call</a>`);
-      if (email) items.push(`<a href="mailto:${encodeURIComponent(email)}">Email</a>`);
-      if (fb) items.push(`<a target="_blank" href="${escapeHtml(fb)}">Facebook</a>`);
-      if (tw) items.push(`<a target="_blank" href="${escapeHtml(tw)}">Twitter</a>`);
-      if (ig) items.push(`<a target="_blank" href="${escapeHtml(ig)}">Instagram</a>`);
+
+      if ($('#setting_whatsapp').value)
+        items.push('📱 WhatsApp');
+
+      if ($('#setting_phone_primary').value)
+        items.push('☎️ Primary Phone');
+
+      if ($('#setting_phone_secondary').value)
+        items.push('☎️ Secondary Phone');
+
+      if ($('#setting_email').value)
+        items.push('📧 Email');
+
+      if ($('#setting_address').value)
+        items.push('📍 Address');
+
+      if ($('#setting_map').value)
+        items.push('🗺️ Google Map');
+
+      if ($('#setting_facebook').value)
+        items.push('Facebook');
+
+      if ($('#setting_instagram').value)
+        items.push('Instagram');
+
+      if ($('#setting_twitter').value)
+        items.push('Twitter');
+
       wrap.innerHTML = items.join(' • ');
     }
+
 
     /* ---------- INIT ---------- */
     (async function init(){
