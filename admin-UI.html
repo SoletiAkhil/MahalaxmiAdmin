@@ -1,705 +1,903 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mahalaxmi Pickels — Admin</title>
-  <!-- favicon / tab icon -->
-  <link rel="icon" type="image/jpeg" href="./logo.jpeg">
-  <link rel="shortcut icon" href="./logo.jpeg">
-  <!-- iOS / pinned icon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="./logo.jpeg">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mahalaxmi Pickels — Admin</title>
 
-  <style>
-    /* ---------- BASE ---------- */
-    :root{
-      --bg:#f7f8fb;
-      --card:#ffffff;
-      --muted:#6b7280;
+<link rel="icon" href="./logo.jpeg" />
 
-      /* 🔵 BLUE ACCENT (replaced orange) */
-      --accent:#5c6fd6;
+<style>
+/* ===== PAGE LOADER ===== */
+#pageLoader{
+  position: fixed;
+  inset: 0;
+  background: #f7f8fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
 
-      /* secondary blue already exists */
-      --accent-2:#0b79d0;
+#pageLoader img{
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
 
-      --success:#16a34a;
-      --danger:#ef4444;
-      --glass: rgba(255,255,255,0.6);
-      --radius:12px;
-      --shadow: 0 8px 28px rgba(15,23,42,0.06);
-      --shadow-soft: 0 6px 18px rgba(15,23,42,0.04);
+/* smooth spin */
+@keyframes spin{
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
+/* hide loader smoothly */
+#pageLoader.hide{
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
 
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#fbfbfd,var(--bg));color:#0f172a}
-    a{color:var(--accent-2);text-decoration:none}
-    .container{max-width:1200px;margin:20px auto;padding:18px}
-    header.site{
-      display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:linear-gradient(90deg,#fff 0%, #fcfcff 100%);box-shadow:var(--shadow);
-    }
-    /* Logo + brand layout */
-    .brand{display:flex;align-items:center;gap:14px;}
-    .brand .logo { height:64px; width:64px; min-width:64px; display:flex; align-items:center; justify-content:center; border-radius:12px; overflow:hidden; background:#fff; border:1px solid #eee; box-shadow: 0 6px 16px rgba(15,23,42,0.04); }
-    .brand .logo img{ height:100%; width:100%; object-fit:cover; display:block; }
-    .brand .logo .fallback { font-weight:700; color:var(--accent-2); font-size:18px; display:none; }
-    .brand h1{font-size:20px;margin:0}
-    .brand p{margin:0;color:var(--muted);font-size:13px}
-    header .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;box-shadow:var(--shadow-soft)}
-    .btn.secondary{background:#fff;color:var(--accent-2);border:1px solid #e6eef8}
-    .btn.ghost{background:transparent;color:var(--accent-2);border:1px dashed rgba(11,121,208,0.12)}
-    .small{font-size:13px;color:var(--muted)}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+:root{
+  --accent:#5c6fd6;
+  --bg:#f7f8fb;
+  --card:#ffffff;
+  --radius:16px;
+  --shadow:0 12px 30px rgba(0,0,0,0.08);
+}
 
-    /* ---------- LAYOUT ---------- */
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px}
-    .card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow-soft);min-height:120px}
-    .card h3{margin:0 0 10px 0;font-size:16px}
-    label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
-    input[type="text"], input[type="number"], select, textarea{
-      width:100%;padding:10px;border-radius:10px;border:1px solid #e6edf6;background:#fbfdff;font-size:14px;box-sizing:border-box;
-    }
-    textarea{min-height:84px;resize:vertical}
-    .row{display:flex;gap:8px;align-items:center}
-    .row .col{flex:1}
-    .controls{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:12px}
+body{
+  margin:0;
+  font-family:system-ui, sans-serif;
+  background:var(--bg);
+}
 
-    .thumb{height:84px;width:120px;object-fit:cover;border-radius:8px;border:1px solid #eee}
-    .list{max-height:300px;overflow:auto;margin-top:8px}
-    .list .item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;border:1px solid #f1f5f9;margin-bottom:8px;background:linear-gradient(180deg,#fff,#fbfdff)}
-    .meta{flex:1}
-    .meta .title{font-weight:600}
-    .meta .desc{color:var(--muted);font-size:13px;margin-top:4px}
-    .meta .price{color:#111;font-size:13px;margin-top:6px}
+.container{
+  max-width:1200px;
+  margin:20px auto;
+  padding:16px;
+}
 
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background: #fbf4ef;color:var(--accent);font-weight:600;font-size:13px}
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fff;
+  padding:14px 18px;
+  border-radius:20px;
+  box-shadow:var(--shadow);
+}
 
-    /* search bar */
-    .search-bar{display:flex;gap:8px;align-items:center;padding:8px;border-radius:10px;border:1px solid #eef3fb;background:#fcfdff;margin-bottom:8px}
-    .search-bar input{border:none;box-shadow:none;background:transparent;padding:8px;font-size:14px;flex:1}
-    .search-count{font-size:13px;color:var(--muted)}
+.brand{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
 
-    /* site-settings form */
-    .settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
-    .settings-grid .col{display:flex;flex-direction:column;gap:8px}
+.brand img{
+  width:56px;
+  height:56px;
+  border-radius:12px;
+}
 
-    /* preview */
-    .settings-preview{margin-top:12px;padding:12px;border-radius:8px;border:1px solid #eef3fb;background:#fff;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.actions{
+  display:flex;
+  gap:10px;
+}
 
-    /* ---------- RESPONSIVE ---------- */
-    @media (max-width: 900px){
-      .grid{grid-template-columns:1fr}
-      .brand img{height:48px;width:48px}
-      .container{padding:12px}
-      .settings-grid{grid-template-columns:1fr}
-      .list{max-height:240px}
-    }
+.btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:999px;
+  cursor:pointer;
+  font-weight:600;
+  background:var(--accent);
+  color:#fff;
+}
 
-    @media (max-width: 600px){
-      .brand h1{font-size:16px}
-      .brand p{font-size:12px}
-      header.site{padding:12px}
-      .btn{padding:8px 10px;font-size:14px}
-      .thumb{height:64px;width:92px}
-      .list .item{flex-direction:row;gap:10px;padding:8px}
-    }
+.btn.secondary{
+  background:#fff;
+  color:var(--accent);
+  border:1px solid #e5e7eb;
+}
 
-    /* ---------- helpers ---------- */
-    .muted{color:var(--muted);font-size:13px}
-    .text-right{text-align:right}
-    .danger{background:var(--danger);color:#fff}
-    .success{background:var(--success);color:#fff}
-    .gap-8{height:8px}
-    .input-file{display:block}
-  </style>
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+  margin-top:20px;
+}
+
+.card{
+  background:#fff;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+
+.search-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.search-row input,
+.search-row select{
+  max-width:280px;
+}
+
+@media (max-width:768px){
+  .search-row{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .search-row input,
+  .search-row select{
+    max-width:100%;
+  }
+}
+
+
+.list{
+  max-height:320px;
+  overflow:auto;
+}
+
+.item{
+  display:flex;
+  gap:12px;
+  padding:12px;
+  border:1px solid #f1f5f9;
+  border-radius:14px;
+  margin-bottom:10px;
+}
+
+.thumb{
+  width:90px;
+  height:70px;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.modal-box{
+  background:#fff;
+  width:520px;
+  max-width:95%;
+  border-radius:22px;
+  padding:20px;
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.close{
+  font-size:22px;
+  cursor:pointer;
+  background:none;
+  border:none;
+}
+
+label{display:block;margin-top:12px}
+input,textarea,select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  margin-top:6px;
+}
+
+.preview{
+  margin-top:10px;
+}
+
+.preview img{
+  width:100%;
+  max-height:180px;
+  object-fit:cover;
+  border-radius:12px;
+}
+
+.controls{
+  margin-top:18px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+/* ================= MOBILE IMPROVEMENTS ================= */
+@media (max-width: 768px){
+
+  /* HEADER */
+  header{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .actions{
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn{
+    flex: 1;
+    justify-content: center;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  /* LIST ITEMS */
+  .item{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .item img.thumb{
+    width: 100%;
+    height: 160px;
+  }
+
+  /* MODAL */
+  .modal-box{
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 18px;
+  }
+
+  .modal-header h3{
+    font-size: 18px;
+  }
+
+  input, textarea, select{
+    font-size: 16px; /* prevents iOS zoom */
+    padding: 12px;
+  }
+
+  /* IMAGE PREVIEW */
+  .preview img{
+    max-height: 220px;
+  }
+
+  /* BUTTONS INSIDE MODAL */
+  .controls{
+    flex-direction: column;
+  }
+
+  .controls .btn{
+    width: 100%;
+  }
+}
+.item button{
+  white-space:nowrap;
+}
+
+@media (max-width:768px){
+  .item button{
+    width:100%;
+  }
+}
+
+.modal-box input,
+.modal-box textarea,
+.modal-box select {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+.modal-box{
+  background:#fff;
+  width:520px;
+  max-width:95%;
+  border-radius:22px;
+  padding:20px;
+  overflow: hidden; /* 🔥 important */
+}
+.modal-box input[type="file"] {
+  padding: 8px;
+}
+
+@media (max-width: 768px){
+  .modal-box{
+    width: 95%;
+    padding: 16px;
+  }
+
+  .modal-box input,
+  .modal-box textarea,
+  .modal-box select{
+    font-size: 16px; /* prevents zoom + overflow */
+  }
+}
+/* IMAGE UPLOAD LOADER */
+.upload-loader{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:120px;
+  border-radius:12px;
+  background:#f3f4f6;
+  color:#6b7280;
+  font-size:14px;
+}
+
+.upload-loader::after{
+  content:"";
+  width:28px;
+  height:28px;
+  border:3px solid #d1d5db;
+  border-top-color: var(--accent);
+  border-radius:50%;
+  margin-left:10px;
+  animation: spin 0.8s linear infinite;
+}
+
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <!-- header -->
-    <header class="site" role="banner">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <img src="./logo.jpeg" alt="Mahalaxmi Pickels logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-          <span class="fallback">MP</span>
-        </div>
+<!-- PAGE LOADER -->
+<div id="pageLoader">
+  <img src="./logo.jpeg" alt="Loading..." />
+</div>
 
-        <div>
-          <h1>Mahalaxmi Pickels — Admin</h1>
-          <p class="small">Manage categories &amp; products • images uploaded to <strong>product-images</strong> bucket</p>
+<div class="container">
+
+<header>
+  <div class="brand">
+    <img src="./logo.jpeg">
+    <div>
+      <b>Mahalaxmi Pickels</b><br>
+      <small>Admin Panel</small>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn" onclick="openCategoryModal()">➕ Add Category</button>
+    <button class="btn" onclick="openProductModal()">➕ Add Product</button>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <h3>Categories</h3>
+
+    <!-- SEARCH -->
+    <input
+      type="text"
+      id="categorySearch"
+      placeholder="Search categories..."
+      style="margin-bottom:12px"
+    >
+
+    <div class="list" id="categoriesList">Loading…</div>
+  </div>
+  <div class="card">
+    <h3>Products</h3>
+
+    <!-- SEARCH -->
+    <div class="search-row">
+      <input
+        type="text"
+        id="productSearch"
+        placeholder="Search products..."
+      >
+
+      <select id="productCategoryFilter">
+        <option value="">All Categories</option>
+      </select>
+    </div>
+
+
+    <div class="list" id="productsList">Loading…</div>
+  </div>
+  <!-- SITE SETTINGS -->
+  <div class="card">
+    <h3>Site Settings</h3>
+
+    <label>WhatsApp Number</label>
+    <input id="set_whatsapp">
+
+    <label>Primary Phone</label>
+    <input id="set_phone1">
+
+    <label>Secondary Phone</label>
+    <input id="set_phone2">
+
+    <label>Email</label>
+    <input id="set_email">
+
+    <label>Address</label>
+    <textarea id="set_address"></textarea>
+
+    <label>Google Map URL</label>
+    <input id="set_map">
+
+    <label>Facebook URL</label>
+    <input id="set_fb">
+
+    <label>Instagram URL</label>
+    <input id="set_insta">
+
+    <label>Twitter / X URL</label>
+    <input id="set_tw">
+
+    <div class="controls">
+      <button class="btn" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal" id="categoryModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="catTitle">Add Category</h3>
+      <button class="close" onclick="closeCategoryModal()">×</button>
+    </div>
+
+    <input id="cat_id" type="hidden">
+
+    <label>Name</label>
+    <input id="cat_name">
+
+    <label>Description</label>
+    <textarea id="cat_desc"></textarea>
+
+    <label>Image</label>
+    <input type="file" id="cat_image_file" accept="image/*">
+    <!-- <button class="btn secondary" onclick="uploadCategoryImage()">Upload Image</button> -->
+    <div class="preview" id="cat_preview"></div>
+
+    <div class="controls">
+      <button class="btn" onclick="saveCategory()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal" id="productModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="prodTitle">Add Product</h3>
+      <button class="close" onclick="closeProductModal()">×</button>
+    </div>
+
+    <input id="prod_id" type="hidden">
+
+    <label>Name</label>
+    <input id="prod_name">
+
+    <label>Category</label>
+    <select id="prod_category"></select>
+
+    <label>Price</label>
+    <input type="number" id="prod_price">
+
+    <label>Image</label>
+    <input type="file" id="prod_image_file" accept="image/*">
+    <!-- <button class="btn secondary" onclick="uploadProductImage()">Upload Image</button> -->
+    <div class="preview" id="prod_preview"></div>
+
+    <div class="controls">
+      <button class="btn" onclick="saveProduct()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+const client = supabase.createClient(
+  "https://mfbgnapfarkguogklunk.supabase.co",
+  "sb_publishable_jhUG7EagF5vX6qi2wcxEwA_UB-ExHO8"
+);
+
+const SETTINGS_ID = "mahalaxmi";
+
+const BUCKET = "product-images";
+
+let categories=[], products=[];
+let catImageUrl="", prodImageUrl="";
+
+/* UPLOAD */
+async function uploadFile(file, folder){
+  const path = `${folder}/${Date.now()}-${file.name}`;
+  const { error } = await client.storage.from(BUCKET).upload(path, file);
+  if(error) throw error;
+  return client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+// async function uploadCategoryImage(){
+//   const f = cat_image_file.files[0];
+//   if(!f) return alert("Choose image");
+//   catImageUrl = await uploadFile(f,"categories");
+//   cat_preview.innerHTML = `<img src="${catImageUrl}">`;
+// }
+
+document.getElementById("cat_image_file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    cat_image_file.disabled = true;
+    cat_preview.innerHTML = `<div class="upload-loader">Uploading image</div>`;
+
+    catImageUrl = await uploadFile(file, "categories");
+
+    cat_preview.innerHTML = `<img src="${catImageUrl}">`;
+  } catch (err) {
+    alert("Image upload failed");
+    console.error(err);
+    cat_preview.innerHTML = "";
+  } finally {
+    cat_image_file.disabled = false;
+  }
+});
+
+
+
+// async function uploadProductImage(){
+//   const f = prod_image_file.files[0];
+//   if(!f) return alert("Choose image");
+//   prodImageUrl = await uploadFile(f,"products");
+//   prod_preview.innerHTML = `<img src="${prodImageUrl}">`;
+// }
+
+document.getElementById("prod_image_file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    prod_image_file.disabled = true;
+    prod_preview.innerHTML = `<div class="upload-loader">Uploading image</div>`;
+
+    prodImageUrl = await uploadFile(file, "products");
+
+    prod_preview.innerHTML = `<img src="${prodImageUrl}">`;
+  } catch (err) {
+    alert("Image upload failed");
+    console.error(err);
+    prod_preview.innerHTML = "";
+  } finally {
+    prod_image_file.disabled = false;
+  }
+});
+
+
+
+/* MODALS */
+function openCategoryModal(){
+  categoryModal.style.display = "flex";
+
+  // 🔥 reset image input so change event always fires
+  cat_image_file.value = "";
+  cat_preview.innerHTML = "";
+  catImageUrl = "";
+}
+
+function closeCategoryModal(){categoryModal.style.display="none"}
+function openProductModal(){
+  productModal.style.display = "flex";
+
+  // 🔥 reset image input so change event always fires
+  prod_image_file.value = "";
+  prod_preview.innerHTML = "";
+  prodImageUrl = "";
+}
+
+function closeProductModal(){productModal.style.display="none"}
+
+/* LOAD */
+// async function loadAll(){
+//   categories = (await client.from("categories").select("*")).data || [];
+//   products   = (await client.from("products").select("*")).data || [];
+
+//   productCategoryFilter.innerHTML =
+//   `<option value="">All Categories</option>` +
+//   categories.map(c =>
+//     `<option value="${c.id}">${escapeHtml(c.name)}</option>`
+//   ).join("");
+
+//   renderCategories(categories);
+//   renderProducts(products);
+
+//   prod_category.innerHTML = categories
+//     .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+//     .join("");
+// }
+async function loadAll(){
+  try{
+    const catRes = await client.from("categories").select("*");
+    const prodRes = await client.from("products").select("*");
+
+    categories = catRes.data || [];
+    products   = prodRes.data || [];
+
+    renderCategories(categories);
+    renderProducts(products);
+
+    prod_category.innerHTML = categories
+      .map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+      .join("");
+
+  } finally {
+    // 🔥 hide loader after everything is ready
+    const loader = document.getElementById("pageLoader");
+    loader.classList.add("hide");
+
+    // remove from DOM after animation
+    setTimeout(() => loader.remove(), 400);
+  }
+}
+
+
+function applyProductFilters(){
+  const q = productSearch.value.toLowerCase();
+  const catId = productCategoryFilter.value;
+
+  renderProducts(
+    products.filter(p => {
+      const matchesText =
+        (p.name + " " + (p.description || ""))
+          .toLowerCase()
+          .includes(q);
+
+      const matchesCategory =
+        !catId || p.category_id === catId;
+
+      return matchesText && matchesCategory;
+    })
+  );
+}
+
+productSearch.addEventListener("input", applyProductFilters);
+productCategoryFilter.addEventListener("change", applyProductFilters);
+
+
+function renderCategories(list){
+  categoriesList.innerHTML = list.map(c => `
+    <div class="item">
+      <div style="flex:1">
+        <b>${escapeHtml(c.name)}</b>
+        <div style="margin-top:6px;display:flex;gap:8px">
+          <button class="btn secondary" onclick="editCategoryById('${c.id}')">
+            Edit
+          </button>
+          <button class="btn secondary" onclick="deleteCategory('${c.id}')">
+            Delete
+          </button>
         </div>
       </div>
+      ${c.image_url ? `<img class="thumb" src="${c.image_url}">` : ``}
+    </div>
+  `).join("");
+}
 
-      <div class="actions">
-        <button class="btn" id="refreshBtn">Refresh</button>
-        <button class="btn secondary" id="exportBtn">Export JSON</button>
-      </div>
-    </header>
 
-    <!-- two-column main area -->
-    <div class="grid" id="mainGrid">
-      <!-- Category Card -->
-      <div class="card">
-        <h3>Category — Add / Edit</h3>
-        <label class="small">ID (leave empty for new)</label>
-        <input id="cat_id" type="text" placeholder="(leave empty)" />
-
-        <label>Category name</label>
-        <input id="cat_name" type="text" placeholder="e.g. Pickles, Chutneys" />
-
-        <label>Description</label>
-        <textarea id="cat_desc" placeholder="Short description"></textarea>
-
-        <label class="small">Image (choose file then Upload)</label>
-        <input class="input-file" id="cat_image_file" type="file" accept="image/*" />
-        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
-          <button class="btn" id="uploadCatImageBtn">Upload Image</button>
-          <button class="btn ghost" id="clearCatImageBtn">Clear</button>
-          <div id="cat_image_preview" style="margin-left:12px"></div>
-        </div>
-
-        <div class="controls">
-          <button class="btn secondary" id="saveCategoryBtn">Save Category</button>
+function renderProducts(list){
+  productsList.innerHTML = list.map(p => `
+    <div class="item">
+      <div style="flex:1">
+        <b>${escapeHtml(p.name)}</b>
+        <div style="margin-top:6px;display:flex;gap:8px">
+          <button class="btn secondary" onclick="editProductById('${p.id}')">
+            Edit
+          </button>
+          <button class="btn secondary" onclick="deleteProduct('${p.id}')">
+            Delete
+          </button>
         </div>
       </div>
-
-      <!-- Product Card -->
-      <div class="card">
-        <h3>Product — Add / Edit</h3>
-        <label class="small">ID (leave empty for new)</label>
-        <input id="prod_id" type="text" placeholder="(leave empty)" />
-
-        <label>Category</label>
-        <select id="prod_category"><option>Loading categories...</option></select>
-
-        <label>Product name</label>
-        <input id="prod_name" type="text" placeholder="Product name" />
-
-        <label>Description</label>
-        <textarea id="prod_desc" placeholder="Short description"></textarea>
-
-        <div class="row">
-          <div class="col">
-            <label>Price (₹)</label>
-            <input id="prod_price" type="number" placeholder="e.g. 299" />
-          </div>
-          <div style="width:120px">
-            <label>Discount (₹)</label>
-            <input id="prod_discount" type="number" placeholder="0" />
-          </div>
-        </div>
-
-        <label class="small">Image (choose file then Upload)</label>
-        <input class="input-file" id="prod_image_file" type="file" accept="image/*" />
-        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
-          <button class="btn" id="uploadProdImageBtn">Upload Image</button>
-          <button class="btn ghost" id="clearProdImageBtn">Clear</button>
-          <div id="prod_image_preview" style="margin-left:12px"></div>
-        </div>
-
-        <div class="controls">
-          <button class="btn secondary" id="saveProductBtn">Save Product</button>
-        </div>
-      </div>
-
-      <!-- Category list full-width -->
-      <div class="card full" style="grid-column:1 / -1">
-        <h3>Categories</h3>
-
-        <!-- search -->
-        <div class="search-bar">
-          <input id="categorySearch" type="text" placeholder="Search categories by name or description..." />
-          <div class="search-count" id="categoryCount">—</div>
-        </div>
-
-        <div id="categoriesList" class="list"><div class="muted">Loading...</div></div>
-      </div>
-
-      <!-- Products list full-width -->
-      <div class="card full" style="grid-column:1 / -1">
-        <h3>Products</h3>
-
-        <!-- search -->
-        <div class="search-bar">
-          <input id="productSearch" type="text" placeholder="Search products by name or description..." />
-          <div class="search-count" id="productCount">—</div>
-        </div>
-
-        <div id="productsList" class="list"><div class="muted">Loading...</div></div>
-      </div>
-
-      <!-- Site Settings (footer area) -->
-      <div class="card full" style="grid-column:1 / -1">
-        <h3>Site Settings & Contact</h3>
-
-        <div class="settings-grid" id="settingsGrid">
-
-            <!-- LEFT COLUMN -->
-            <div class="col">
-              <label>WhatsApp number (with country code)</label>
-              <input id="setting_whatsapp" type="text" placeholder="919032589283" />
-
-              <label>Primary Phone Number</label>
-              <input id="setting_phone_primary" type="text" placeholder="6281245345" />
-
-              <label>Secondary Phone Number</label>
-              <input id="setting_phone_secondary" type="text" placeholder="8790387333" />
-
-              <label>Support Email</label>
-              <input id="setting_email" type="text" placeholder="support@example.com" />
-            </div>
-
-            <!-- RIGHT COLUMN -->
-            <div class="col">
-              <label>Full Address</label>
-              <textarea id="setting_address" placeholder="SAT Nagar, House No. 45, Thotapalem Panchayathi..."></textarea>
-
-              <label>Google Map URL</label>
-              <input id="setting_map" type="text" placeholder="https://share.google/..." />
-
-              <label>Facebook URL</label>
-              <input id="setting_facebook" type="text" />
-
-              <label>Instagram URL</label>
-              <input id="setting_instagram" type="text" />
-
-              <label>Twitter / X URL</label>
-              <input id="setting_twitter" type="text" />
-            </div>
-
-          </div>
-
-
-        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
-          <button class="btn" id="saveSettingsBtn">Save Settings</button>
-          <button class="btn secondary" id="loadSettingsBtn">Reload</button>
-          <div class="muted" style="margin-left:auto" id="settingsStatus">Not saved</div>
-        </div>
-
-        <div class="settings-preview" id="settingsPreview">
-          <div class="muted">Preview:</div>
-          <div id="previewLinks" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-        </div>
-      </div>
-
-    </div> <!-- grid -->
-  </div> <!-- container -->
-
-  <!-- Load supabase UMD SDK (local file 'supabase.js' should be present) -->
-  <script src="supabase.js"></script>
-
-  <script>
-    /* ---------- CONFIG ---------- */
-    const SUPABASE_URL = "https://mfbgnapfarkguogklunk.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_jhUG7EagF5vX6qi2wcxEwA_UB-ExHO8";
-    const BUCKET = "product-images";
-    const SETTINGS_ROW_ID = 'mahalaxmi'; // single-row id for site settings
-    /* ---------------------------- */
-
-    // create client (UMD exposes global `supabase`)
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // helpers & globals
-    const $ = s => document.querySelector(s);
-    const $$ = s => Array.from(document.querySelectorAll(s));
-    const escapeHtml = s => (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    let CATEGORIES = []; // latest loaded categories
-    let PRODUCTS = [];   // latest loaded products
-
-    // debounce helper
-    function debounce(fn, wait=200){
-      let t;
-      return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), wait); };
-    }
-
-    // Upload helper - returns public URL
-    async function uploadFileToBucket(file, folder='') {
-      if (!file) throw new Error('No file selected');
-      const safeName = `${Date.now()}-${file.name.replace(/\s+/g,'-')}`;
-      const path = folder ? `${folder}/${safeName}` : safeName;
-      const { data, error } = await client.storage.from(BUCKET).upload(path, file, { cacheControl: '3600', upsert: false });
-      if (error) throw error;
-      const { data: urlData } = client.storage.from(BUCKET).getPublicUrl(data.path);
-      return urlData.publicUrl;
-    }
-
-    /* ---------- LOAD & RENDER ---------- */
-    async function loadCategories() {
-      try {
-        const { data, error } = await client.from('categories').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        CATEGORIES = data || [];
-        renderCategorySelect(CATEGORIES);
-        renderCategoriesList(CATEGORIES, $('#categorySearch').value || '');
-        return CATEGORIES;
-      } catch (err) {
-        console.error('loadCategories', err);
-        $('#categoriesList').innerHTML = `<div class="muted">Error loading categories: ${err.message||err}</div>`;
-        $('#prod_category').innerHTML = '<option value="">(error)</option>';
-        CATEGORIES = [];
-        renderCategoryCount(0);
-        return [];
-      }
-    }
-
-    function renderCategorySelect(categories) {
-      const sel = $('#prod_category');
-      sel.innerHTML = `<option value="">-- Select category --</option>` + categories.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-    }
-
-    function renderCategoryCount(n){ $('#categoryCount').innerText = n + ' items'; }
-
-    function renderCategoriesList(categories, filter='') {
-      const out = $('#categoriesList');
-      const q = (filter||'').trim().toLowerCase();
-      const list = q ? categories.filter(c => ((c.name||'')+ ' ' + (c.description||'')).toLowerCase().includes(q)) : categories;
-      renderCategoryCount(list.length);
-      if (!list.length) { out.innerHTML = '<div class="muted">No categories match</div>'; return; }
-      out.innerHTML = list.map(c => `
-        <div class="item">
-          <div class="meta">
-            <div class="title">${escapeHtml(c.name)}</div>
-            <div class="desc">${escapeHtml(c.description||'')}</div>
-            <div style="margin-top:6px"><span class="pill">ID: ${c.id.slice(0,8)}</span></div>
-          </div>
-          <div>${c.image_url?`<img class="thumb" src="${c.image_url}" alt="${escapeHtml(c.name)}">`:''}</div>
-          <div style="text-align:right">
-            <button class="btn secondary editCat" data-id="${c.id}">Edit</button>
-            <button class="btn ghost delCat" data-id="${c.id}" style="margin-top:8px">Delete</button>
-          </div>
-        </div>
-      `).join('');
-
-      // attach events
-      $$('.editCat').forEach(b => b.addEventListener('click', async e => {
-        const id = e.currentTarget.dataset.id;
-        const items = CATEGORIES.find(x => x.id === id);
-        if (!items) return;
-        $('#cat_id').value = items.id;
-        $('#cat_name').value = items.name;
-        $('#cat_desc').value = items.description || '';
-        if (items.image_url) { $('#cat_image_preview').innerHTML = `<img class="thumb" src="${items.image_url}">`; $('#cat_image_preview').dataset.url = items.image_url; } else { $('#cat_image_preview').innerHTML=''; delete $('#cat_image_preview').dataset.url; }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }));
-      $$('.delCat').forEach(b => b.addEventListener('click', async e => {
-        const id = e.currentTarget.dataset.id;
-        if (!confirm('Delete category and ALL products under it?')) return;
-        const { error } = await client.from('categories').delete().eq('id', id);
-        if (error) return alert('Delete failed: ' + error.message);
-        await client.from('products').delete().eq('category_id', id);
-        await refreshAll();
-      }));
-    }
-
-    async function loadProducts() {
-      try {
-        const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        PRODUCTS = data || [];
-        renderProductsList(PRODUCTS, $('#productSearch').value || '');
-        return PRODUCTS;
-      } catch (err) {
-        console.error('loadProducts', err);
-        $('#productsList').innerHTML = `<div class="muted">Error loading products: ${err.message||err}</div>`;
-        PRODUCTS = [];
-        renderProductCount(0);
-        return [];
-      }
-    }
-
-    function renderProductCount(n){ $('#productCount').innerText = n + ' items'; }
-
-    function renderProductsList(products, filter='') {
-      const out = $('#productsList');
-      const q = (filter||'').trim().toLowerCase();
-      const list = q ? products.filter(p => ((p.name||'') + ' ' + (p.description||'')).toLowerCase().includes(q)) : products;
-      renderProductCount(list.length);
-      if (!list.length) { out.innerHTML = '<div class="muted">No products match</div>'; return; }
-      out.innerHTML = list.map(p => `
-        <div class="item">
-          <div class="meta">
-            <div class="title">${escapeHtml(p.name)}</div>
-            <div class="desc">${escapeHtml(p.description||'')}</div>
-            <div class="price">₹ ${p.price} • Discount ₹ ${p.discount||0}</div>
-            <div style="margin-top:6px"><span class="pill">Cat: ${p.category_id? p.category_id.slice(0,8) : '—'}</span></div>
-          </div>
-          <div>${p.image_url?`<img class="thumb" src="${p.image_url}" alt="${escapeHtml(p.name)}">`:''}</div>
-          <div style="text-align:right">
-            <button class="btn secondary editProd" data-id="${p.id}">Edit</button>
-            <button class="btn ghost delProd" data-id="${p.id}" style="margin-top:8px">Delete</button>
-          </div>
-        </div>
-      `).join('');
-
-      // attach events
-      $$('.editProd').forEach(b => b.addEventListener('click', e => {
-        const id = e.currentTarget.dataset.id;
-        const p = PRODUCTS.find(x => x.id === id);
-        if (!p) return;
-        $('#prod_id').value = p.id;
-        $('#prod_category').value = p.category_id || '';
-        $('#prod_name').value = p.name;
-        $('#prod_desc').value = p.description || '';
-        $('#prod_price').value = p.price;
-        $('#prod_discount').value = p.discount || 0;
-        if (p.image_url) { $('#prod_image_preview').innerHTML = `<img class="thumb" src="${p.image_url}">`; $('#prod_image_preview').dataset.url = p.image_url; } else { $('#prod_image_preview').innerHTML = ''; delete $('#prod_image_preview').dataset.url; }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }));
-      $$('.delProd').forEach(b => b.addEventListener('click', async e => {
-        const id = e.currentTarget.dataset.id;
-        if (!confirm('Delete product?')) return;
-        const { error } = await client.from('products').delete().eq('id', id);
-        if (error) return alert('Delete failed: ' + error.message);
-        await refreshAll();
-      }));
-    }
-
-    /* ---------- SAVE & UPLOAD HANDLERS ---------- */
-    $('#saveCategoryBtn').addEventListener('click', async () => {
-      const id = $('#cat_id').value.trim();
-      const name = $('#cat_name').value.trim();
-      const description = $('#cat_desc').value.trim();
-      const image_url = $('#cat_image_preview').dataset.url || null;
-      if (!name) return alert('Category name is required');
-      try {
-        if (id) {
-          const { error } = await client.from('categories').update({ name, description, image_url }).eq('id', id);
-          if (error) throw error;
-          alert('Category updated');
-        } else {
-          const { error } = await client.from('categories').insert({ name, description, image_url });
-          if (error) throw error;
-          alert('Category created');
-        }
-        // clear form
-        $('#cat_id').value=''; $('#cat_name').value=''; $('#cat_desc').value=''; $('#cat_image_preview').innerHTML=''; delete $('#cat_image_preview').dataset.url;
-        await refreshAll();
-      } catch (err) {
-        alert('Save failed: ' + (err.message || err)); console.error(err);
-      }
-    });
-
-    $('#saveProductBtn').addEventListener('click', async () => {
-      const id = $('#prod_id').value.trim();
-      const category_id = $('#prod_category').value || null;
-      const name = $('#prod_name').value.trim();
-      const description = $('#prod_desc').value.trim();
-      const price = parseFloat($('#prod_price').value || 0);
-      const discount = parseFloat($('#prod_discount').value || 0);
-      const image_url = $('#prod_image_preview').dataset.url || null;
-      if (!name || !category_id) return alert('Product name and category are required');
-      try {
-        if (id) {
-          const { error } = await client.from('products').update({ category_id, name, description, price, discount, image_url }).eq('id', id);
-          if (error) throw error;
-          alert('Product updated');
-        } else {
-          const { error } = await client.from('products').insert({ category_id, name, description, price, discount, image_url });
-          if (error) throw error;
-          alert('Product created');
-        }
-        // clear form
-        $('#prod_id').value=''; $('#prod_name').value=''; $('#prod_desc').value=''; $('#prod_price').value=''; $('#prod_discount').value=''; $('#prod_category').value='';
-        $('#prod_image_preview').innerHTML=''; delete $('#prod_image_preview').dataset.url;
-        await refreshAll();
-      } catch (err) {
-        alert('Save failed: ' + (err.message || err)); console.error(err);
-      }
-    });
-
-    // UPLOAD handlers
-    $('#uploadCatImageBtn').addEventListener('click', async () => {
-      const f = $('#cat_image_file').files[0];
-      if (!f) return alert('Please choose a file first');
-      try {
-        $('#uploadCatImageBtn').innerText = 'Uploading...'; $('#uploadCatImageBtn').disabled = true;
-        const url = await uploadFileToBucket(f, 'categories');
-        $('#cat_image_preview').innerHTML = `<img class="thumb" src="${url}" alt="cat">`; $('#cat_image_preview').dataset.url = url;
-        alert('Image uploaded');
-      } catch (err) {
-        alert('Upload failed: ' + (err.message || err)); console.error(err);
-      } finally {
-        $('#uploadCatImageBtn').innerText = 'Upload Image'; $('#uploadCatImageBtn').disabled = false;
-      }
-    });
-
-    $('#uploadProdImageBtn').addEventListener('click', async () => {
-      const f = $('#prod_image_file').files[0];
-      if (!f) return alert('Please choose a file first');
-      try {
-        $('#uploadProdImageBtn').innerText = 'Uploading...'; $('#uploadProdImageBtn').disabled = true;
-        const url = await uploadFileToBucket(f, 'products');
-        $('#prod_image_preview').innerHTML = `<img class="thumb" src="${url}" alt="prod">`; $('#prod_image_preview').dataset.url = url;
-        alert('Image uploaded');
-      } catch (err) {
-        alert('Upload failed: ' + (err.message || err)); console.error(err);
-      } finally {
-        $('#uploadProdImageBtn').innerText = 'Upload Image'; $('#uploadProdImageBtn').disabled = false;
-      }
-    });
-
-    // clear preview buttons
-    $('#clearCatImageBtn').addEventListener('click', ()=>{ $('#cat_image_preview').innerHTML=''; delete $('#cat_image_preview').dataset.url; $('#cat_image_file').value = ''; });
-    $('#clearProdImageBtn').addEventListener('click', ()=>{ $('#prod_image_preview').innerHTML=''; delete $('#prod_image_preview').dataset.url; $('#prod_image_file').value = ''; });
-
-    // export categories json
-    $('#exportBtn').addEventListener('click', async () => {
-      const { data, error } = await client.from('categories').select('*');
-      if (error) return alert('Export failed: ' + error.message);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'categories.json'; a.click();
-      URL.revokeObjectURL(a.href);
-    });
-
-    $('#refreshBtn').addEventListener('click', refreshAll);
-
-    // refresh both lists
-    async function refreshAll(){
-      $('#categoriesList').innerHTML = '<div class="muted">Loading...</div>';
-      $('#productsList').innerHTML = '<div class="muted">Loading...</div>';
-      await Promise.all([loadCategories(), loadProducts()]);
-      // reload settings too
-      await loadSettings();
-    }
-
-    /* ---------- SEARCH behaviour ---------- */
-    const categorySearchInput = $('#categorySearch');
-    const productSearchInput = $('#productSearch');
-
-    const doCategorySearch = debounce(() => renderCategoriesList(CATEGORIES, categorySearchInput.value), 150);
-    const doProductSearch = debounce(() => renderProductsList(PRODUCTS, productSearchInput.value), 150);
-
-    categorySearchInput.addEventListener('input', doCategorySearch);
-    productSearchInput.addEventListener('input', doProductSearch);
-
-    /* ---------- SITE SETTINGS: load / save / preview ---------- */
-    // load settings row from site_settings where id = SETTINGS_ROW_ID
-    async function loadSettings() {
-      try {
-        const { data, error } = await client
-          .from('site_settings')
-          .select('*')
-          .eq('id', SETTINGS_ROW_ID)
-          .single();
-
-        if (error && error.code !== 'PGRST116') throw error;
-
-        const row = data || {};
-
-        $('#setting_whatsapp').value = row.whatsapp_number || '';
-        $('#setting_phone_primary').value = row.phone_primary || '';
-        $('#setting_phone_secondary').value = row.phone_secondary || '';
-        $('#setting_email').value = row.email || '';
-
-        $('#setting_address').value = row.address || '';
-        $('#setting_map').value = row.google_map_url || '';
-
-        $('#setting_facebook').value = row.facebook_url || '';
-        $('#setting_instagram').value = row.instagram_url || '';
-        $('#setting_twitter').value = row.twitter_url || '';
-
-        $('#settingsStatus').innerText = data ? 'Loaded' : 'No settings';
-        renderSettingsPreview();
-
-      } catch (err) {
-        console.error('loadSettings', err);
-        $('#settingsStatus').innerText = 'Load failed';
-      }
-    }
-
-
-    $('#saveSettingsBtn').addEventListener('click', async () => {
-
-      const payload = {
-        id: SETTINGS_ROW_ID,
-
-        whatsapp_number: $('#setting_whatsapp').value.trim(),
-        phone_primary: $('#setting_phone_primary').value.trim(),
-        phone_secondary: $('#setting_phone_secondary').value.trim(),
-        email: $('#setting_email').value.trim(),
-
-        address: $('#setting_address').value.trim(),
-        google_map_url: $('#setting_map').value.trim(),
-
-        facebook_url: $('#setting_facebook').value.trim(),
-        instagram_url: $('#setting_instagram').value.trim(),
-        twitter_url: $('#setting_twitter').value.trim(),
-
-        updated_at: new Date().toISOString()
-      };
-
-      try {
-        $('#saveSettingsBtn').innerText = 'Saving...';
-        $('#saveSettingsBtn').disabled = true;
-
-        const { error } = await client
-          .from('site_settings')
-          .upsert(payload);
-
-        if (error) throw error;
-
-        $('#settingsStatus').innerText = 'Saved';
-        renderSettingsPreview();
-        alert('Settings saved successfully');
-
-      } catch (err) {
-        console.error(err);
-        alert('Save failed: ' + err.message);
-        $('#settingsStatus').innerText = 'Save failed';
-      } finally {
-        $('#saveSettingsBtn').innerText = 'Save Settings';
-        $('#saveSettingsBtn').disabled = false;
-      }
-    });
-
-
-    $('#loadSettingsBtn').addEventListener('click', loadSettings);
-
-    function renderSettingsPreview() {
-      const wrap = $('#previewLinks');
-      wrap.innerHTML = '';
-
-      const items = [];
-
-      if ($('#setting_whatsapp').value)
-        items.push('📱 WhatsApp');
-
-      if ($('#setting_phone_primary').value)
-        items.push('☎️ Primary Phone');
-
-      if ($('#setting_phone_secondary').value)
-        items.push('☎️ Secondary Phone');
-
-      if ($('#setting_email').value)
-        items.push('📧 Email');
-
-      if ($('#setting_address').value)
-        items.push('📍 Address');
-
-      if ($('#setting_map').value)
-        items.push('🗺️ Google Map');
-
-      if ($('#setting_facebook').value)
-        items.push('Facebook');
-
-      if ($('#setting_instagram').value)
-        items.push('Instagram');
-
-      if ($('#setting_twitter').value)
-        items.push('Twitter');
-
-      wrap.innerHTML = items.join(' • ');
-    }
-
-
-    /* ---------- INIT ---------- */
-    (async function init(){
-      console.log('Supabase client ready?', !!client);
-      await refreshAll();
-      await loadSettings();
-    })();
-
-  </script>
+      ${p.image_url ? `<img class="thumb" src="${p.image_url}">` : ``}
+    </div>
+  `).join("");
+}
+async function deleteCategory(id){
+  if(!confirm("Delete category and ALL products under it?")) return;
+
+  await client.from("products").delete().eq("category_id", id);
+  await client.from("categories").delete().eq("id", id);
+
+  loadAll();
+}
+
+async function deleteProduct(id){
+  if(!confirm("Delete this product?")) return;
+
+  await client.from("products").delete().eq("id", id);
+  loadAll();
+}
+
+
+categorySearch.addEventListener("input", () => {
+  const q = categorySearch.value.toLowerCase();
+  renderCategories(
+    categories.filter(c =>
+      (c.name + " " + (c.description || "")).toLowerCase().includes(q)
+    )
+  );
+});
+
+productSearch.addEventListener("input", () => {
+  const q = productSearch.value.toLowerCase();
+  renderProducts(
+    products.filter(p =>
+      (p.name + " " + (p.description || "")).toLowerCase().includes(q)
+    )
+  );
+});
+function escapeHtml(str){
+  return (str || "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[m]));
+}
+
+
+/* EDIT */
+// function editCategory(c){
+//   catTitle.innerText="Edit Category";
+//   cat_id.value=c.id;
+//   cat_name.value=c.name;
+//   cat_desc.value=c.description||"";
+//   catImageUrl=c.image_url||"";
+//   cat_preview.innerHTML=c.image_url?`<img src="${c.image_url}">`:"";
+//   openCategoryModal();
+// }
+
+// function editProduct(p){
+//   prodTitle.innerText="Edit Product";
+//   prod_id.value=p.id;
+//   prod_name.value=p.name;
+//   prod_price.value=p.price;
+//   prod_category.value=p.category_id;
+//   prodImageUrl=p.image_url||"";
+//   prod_preview.innerHTML=p.image_url?`<img src="${p.image_url}">`:"";
+//   openProductModal();
+// }
+
+function editCategoryById(id){
+  const c = categories.find(x => x.id === id);
+  if(!c) return;
+
+  catTitle.innerText = "Edit Category";
+  cat_id.value = c.id;
+  cat_name.value = c.name;
+  cat_desc.value = c.description || "";
+  catImageUrl = c.image_url || "";
+
+  cat_preview.innerHTML = c.image_url
+    ? `<img src="${c.image_url}">`
+    : "";
+
+  openCategoryModal();
+}
+
+function editProductById(id){
+  const p = products.find(x => x.id === id);
+  if(!p) return;
+
+  prodTitle.innerText = "Edit Product";
+  prod_id.value = p.id;
+  prod_name.value = p.name;
+  prod_price.value = p.price;
+  prod_category.value = p.category_id;
+  prodImageUrl = p.image_url || "";
+
+  prod_preview.innerHTML = p.image_url
+    ? `<img src="${p.image_url}">`
+    : "";
+
+  openProductModal();
+}
+
+
+/* SAVE */
+async function saveCategory(){
+  const data={
+    name:cat_name.value,
+    description:cat_desc.value,
+    image_url:catImageUrl
+  };
+  cat_id.value
+    ? await client.from("categories").update(data).eq("id",cat_id.value)
+    : await client.from("categories").insert(data);
+  closeCategoryModal();
+  loadAll();
+}
+
+async function saveProduct(){
+  const data={
+    name:prod_name.value,
+    price:+prod_price.value,
+    category_id:prod_category.value,
+    image_url:prodImageUrl
+  };
+  prod_id.value
+    ? await client.from("products").update(data).eq("id",prod_id.value)
+    : await client.from("products").insert(data);
+  closeProductModal();
+  loadAll();
+}
+
+/* ---------- SITE SETTINGS ---------- */
+async function loadSettings(){
+  const { data, error } = await client
+    .from("site_settings")
+    .select("*")
+    .eq("id", SETTINGS_ID)
+    .single();
+
+  if(error){
+    console.error("Settings load failed", error);
+    return;
+  }
+
+  if(!data) return;
+
+  set_whatsapp.value = data.whatsapp_number || "";
+  set_phone1.value  = data.phone_primary || "";
+  set_phone2.value  = data.phone_secondary || "";
+  set_email.value   = data.email || "";
+  set_address.value = data.address || "";
+  set_map.value     = data.google_map_url || "";
+  set_fb.value      = data.facebook_url || "";
+  set_insta.value   = data.instagram_url || "";
+  set_tw.value      = data.twitter_url || "";
+}
+
+
+async function saveSettings(){
+  await client.from("site_settings").upsert({
+    id: SETTINGS_ID,
+    whatsapp_number: set_whatsapp.value,
+    phone_primary: set_phone1.value,
+    phone_secondary: set_phone2.value,
+    email: set_email.value,
+    address: set_address.value,
+    google_map_url: set_map.value,
+    facebook_url: set_fb.value,
+    instagram_url: set_insta.value,
+    twitter_url: set_tw.value,
+    updated_at: new Date().toISOString()
+  });
+  alert("Settings saved");
+}
+
+
+loadAll();
+loadSettings();
+</script>
 </body>
-</html>
 
+</html>
