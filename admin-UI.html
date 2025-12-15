@@ -446,6 +446,12 @@ input,textarea,select{
 
     <label>Twitter / X URL</label>
     <input id="set_tw">
+    
+    <label>Terms & Conditions</label>
+    <textarea id="set_terms"></textarea>
+    
+    <label>Privacy Policy</label>
+    <textarea id="set_policy"></textarea>
 
     <div class="controls">
       <button class="btn" onclick="saveSettings()">Save Settings</button>
@@ -875,6 +881,8 @@ async function loadSettings(){
   set_fb.value      = data.facebook_url || "";
   set_insta.value   = data.instagram_url || "";
   set_tw.value      = data.twitter_url || "";
+  set_terms.value  = data.terms_conditions || "";
+  set_policy.value  = data.privacy_policy || "";
 }
 
 
@@ -890,6 +898,8 @@ async function saveSettings(){
     facebook_url: set_fb.value,
     instagram_url: set_insta.value,
     twitter_url: set_tw.value,
+    terms_conditions: set_terms.value,
+    privacy_policy: set_policy.value,
     updated_at: new Date().toISOString()
   });
   alert("Settings saved");
